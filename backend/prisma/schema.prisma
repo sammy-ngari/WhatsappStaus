@@ -1,0 +1,304 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model accounts {
+  id                   String    @id
+  user_id              String    @db.VarChar(50)
+  provider_type        String
+  provider_id          String
+  provider_account_id  String
+  refresh_token        String?
+  access_token         String?
+  access_token_expires DateTime?
+  created_at           DateTime  @default(now())
+  updated_at           DateTime
+  users                users     @relation(fields: [user_id], references: [id])
+
+  @@unique([provider_id, provider_account_id])
+}
+
+model campaign_permissions {
+  id                                           String                   @id @db.VarChar(50)
+  campaign_id                                  String                   @db.VarChar(50)
+  role                                         String                   @db.VarChar(50)
+  userId                                       String                   @db.VarChar(50)
+  status                                       CampaignPermissionStatus @default(ACTIVE)
+  created_at                                   DateTime                 @default(now())
+  created_by                                   String                   @db.VarChar(50)
+  updated_at                                   DateTime?
+  updated_by                                   String?                  @db.VarChar(50)
+  deleted_at                                   DateTime?
+  deleted_by                                   String?                  @db.VarChar(50)
+  campaigns                                    campaigns                @relation(fields: [campaign_id], references: [id])
+  users_campaign_permissions_created_byTousers users                    @relation("campaign_permissions_created_byTousers", fields: [created_by], references: [id])
+  users_campaign_permissions_deleted_byTousers users?                   @relation("campaign_permissions_deleted_byTousers", fields: [deleted_by], references: [id])
+  users_campaign_permissions_updated_byTousers users?                   @relation("campaign_permissions_updated_byTousers", fields: [updated_by], references: [id])
+  users_campaign_permissions_userIdTousers     users                    @relation("campaign_permissions_userIdTousers", fields: [userId], references: [id])
+}
+
+model campaigns {
+  id                                String                 @id @db.VarChar(50)
+  title                             Json[]
+  brand_name                        String                 @db.VarChar(100)
+  commission_rate                   Float
+  duration                          Int
+  caption                           Json[]
+  promo_code                        String                 @db.VarChar(50)
+  material_urls                     Json[]
+  type                              CampaignType
+  status                            CampaignStatus         @default(ACTIVE)
+  unique_link                       String                 @unique @db.VarChar(255)
+  views                             Int                    @default(0)
+  clicks                            Int                    @default(0)
+  conversions                       Int                    @default(0)
+  start_date                        DateTime?
+  end_date                          DateTime?
+  created_at                        DateTime               @default(now())
+  created_by                        String                 @db.VarChar(50)
+  updated_at                        DateTime?
+  updated_by                        String?                @db.VarChar(50)
+  deleted_at                        DateTime?
+  deleted_by                        String?                @db.VarChar(50)
+  campaign_permissions              campaign_permissions[]
+  users_campaigns_created_byTousers users                  @relation("campaigns_created_byTousers", fields: [created_by], references: [id])
+  users_campaigns_deleted_byTousers users?                 @relation("campaigns_deleted_byTousers", fields: [deleted_by], references: [id])
+  users_campaigns_updated_byTousers users?                 @relation("campaigns_updated_byTousers", fields: [updated_by], references: [id])
+}
+
+model events {
+  id                             String          @id
+  title                          String
+  description                    String?
+  date                           DateTime
+  location                       String
+  capacity                       Int
+  price                          Float           @default(0)
+  category                       String
+  createdAt                      DateTime        @default(now())
+  updatedAt                      DateTime
+  deleted_at                     DateTime?
+  created_by                     String          @db.VarChar(50)
+  updated_by                     String?         @db.VarChar(50)
+  deleted_by                     String?         @db.VarChar(50)
+  users_events_created_byTousers users           @relation("events_created_byTousers", fields: [created_by], references: [id])
+  users_events_deleted_byTousers users?          @relation("events_deleted_byTousers", fields: [deleted_by], references: [id])
+  users_events_updated_byTousers users?          @relation("events_updated_byTousers", fields: [updated_by], references: [id])
+  registrations                  registrations[]
+}
+
+model files {
+  id       Int    @id @default(autoincrement())
+  filename String @db.VarChar(50)
+  filepath String @db.VarChar(50)
+  model    String @db.VarChar(50)
+  model_id Int
+  field    String @db.VarChar(50)
+}
+
+model modules {
+  id                              String        @id @db.VarChar(50)
+  title                           String        @db.VarChar(50)
+  description                     String        @db.VarChar(50)
+  created_at                      DateTime      @default(now())
+  created_by                      String        @db.VarChar(50)
+  updated_at                      DateTime?
+  updated_by                      String?       @db.VarChar(50)
+  deleted_at                      DateTime?
+  deleted_by                      String?       @db.VarChar(50)
+  users_modules_created_byTousers users         @relation("modules_created_byTousers", fields: [created_by], references: [id])
+  users_modules_deleted_byTousers users?        @relation("modules_deleted_byTousers", fields: [deleted_by], references: [id])
+  users_modules_updated_byTousers users?        @relation("modules_updated_byTousers", fields: [updated_by], references: [id])
+  permissions                     permissions[]
+  tabs                            tabs[]
+}
+
+model notes {
+  id                            String    @id @db.VarChar(50)
+  parent_id                     String?   @db.VarChar(50)
+  model_id                      String    @db.VarChar(50)
+  model                         String    @db.VarChar(50)
+  note                          String    @db.VarChar(255)
+  created_at                    DateTime  @default(now())
+  created_by                    String    @db.VarChar(50)
+  updated_at                    DateTime?
+  updated_by                    String?   @db.VarChar(50)
+  deleted_at                    DateTime?
+  deleted_by                    String?   @db.VarChar(50)
+  users_notes_created_byTousers users     @relation("notes_created_byTousers", fields: [created_by], references: [id])
+  users_notes_updated_byTousers users?    @relation("notes_updated_byTousers", fields: [updated_by], references: [id])
+}
+
+model permissions {
+  role_id                             String    @db.VarChar(50)
+  module_id                           String    @db.VarChar(50)
+  tab_id                              String    @db.VarChar(50)
+  action                              String    @db.VarChar(10)
+  created_at                          DateTime  @default(now())
+  created_by                          String    @db.VarChar(50)
+  updated_at                          DateTime?
+  updated_by                          String?   @db.VarChar(50)
+  deleted_at                          DateTime?
+  deleted_by                          String?   @db.VarChar(50)
+  users_permissions_created_byTousers users     @relation("permissions_created_byTousers", fields: [created_by], references: [id])
+  users_permissions_deleted_byTousers users?    @relation("permissions_deleted_byTousers", fields: [deleted_by], references: [id])
+  modules                             modules   @relation(fields: [module_id], references: [id])
+  roles                               roles     @relation(fields: [role_id], references: [id])
+  tabs                                tabs      @relation(fields: [tab_id], references: [id])
+  users_permissions_updated_byTousers users?    @relation("permissions_updated_byTousers", fields: [updated_by], references: [id])
+
+  @@id([module_id, tab_id, role_id, action])
+}
+
+model registrations {
+  id                  String             @id
+  title               String
+  firstName           String
+  lastName            String
+  email               String             @unique
+  affiliation         String
+  position            String
+  country             String
+  phoneNo             String
+  passportNumber      String             @unique
+  passportExpiryDate  DateTime
+  departureCity       String
+  passportPhotoUrl    String?
+  dietaryRequirements String?
+  status              RegistrationStatus @default(PENDING)
+  eventId             String
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime
+  events              events             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+model roles {
+  id          String        @id @db.VarChar(50)
+  title       String        @db.VarChar(50)
+  description String        @db.VarChar(50)
+  created_at  DateTime      @default(now())
+  updated_at  DateTime?
+  deleted_at  DateTime?
+  permissions permissions[]
+  users       users[]
+}
+
+model sessions {
+  id            String   @id
+  user_id       String   @db.VarChar(50)
+  expires       DateTime
+  session_token String   @unique
+  access_token  String   @unique
+  created_at    DateTime @default(now())
+  updated_at    DateTime
+  users         users    @relation(fields: [user_id], references: [id])
+}
+
+model tabs {
+  id                           String        @id @db.VarChar(50)
+  module_id                    String        @db.VarChar(50)
+  title                        String        @db.VarChar(50)
+  description                  String        @db.VarChar(50)
+  created_at                   DateTime      @default(now())
+  created_by                   String        @db.VarChar(50)
+  updated_at                   DateTime?
+  updated_by                   String?       @db.VarChar(50)
+  deleted_at                   DateTime?
+  deleted_by                   String?       @db.VarChar(50)
+  permissions                  permissions[]
+  users_tabs_created_byTousers users         @relation("tabs_created_byTousers", fields: [created_by], references: [id])
+  users_tabs_deleted_byTousers users?        @relation("tabs_deleted_byTousers", fields: [deleted_by], references: [id])
+  modules                      modules       @relation(fields: [module_id], references: [id])
+  users_tabs_updated_byTousers users?        @relation("tabs_updated_byTousers", fields: [updated_by], references: [id])
+}
+
+model users {
+  id                                                          String                 @id @db.VarChar(50)
+  role_id                                                     String                 @default("1") @db.VarChar(50)
+  email                                                       String                 @unique @db.VarChar(50)
+  email_verified                                              DateTime?
+  password                                                    String                 @db.VarChar(100)
+  image                                                       String?                @db.VarChar(50)
+  firstname                                                   String                 @db.VarChar(50)
+  othernames                                                  String                 @db.VarChar(100)
+  date_of_birth                                               String                 @db.VarChar(20)
+  gender                                                      String                 @db.VarChar(10)
+  national_id                                                 String                 @unique @db.VarChar(20)
+  phone                                                       String                 @db.VarChar(20)
+  next_of_kin                                                 String                 @db.VarChar(100)
+  next_of_kin_contacts                                        String                 @db.VarChar(100)
+  address                                                     String?                @db.VarChar(255)
+  created_at                                                  DateTime               @default(now())
+  updated_at                                                  DateTime?
+  deleted_at                                                  DateTime?
+  deleted_by                                                  String?                @db.VarChar(50)
+  accounts                                                    accounts[]
+  campaign_permissions_campaign_permissions_created_byTousers campaign_permissions[] @relation("campaign_permissions_created_byTousers")
+  campaign_permissions_campaign_permissions_deleted_byTousers campaign_permissions[] @relation("campaign_permissions_deleted_byTousers")
+  campaign_permissions_campaign_permissions_updated_byTousers campaign_permissions[] @relation("campaign_permissions_updated_byTousers")
+  campaign_permissions_campaign_permissions_userIdTousers     campaign_permissions[] @relation("campaign_permissions_userIdTousers")
+  campaigns_campaigns_created_byTousers                       campaigns[]            @relation("campaigns_created_byTousers")
+  campaigns_campaigns_deleted_byTousers                       campaigns[]            @relation("campaigns_deleted_byTousers")
+  campaigns_campaigns_updated_byTousers                       campaigns[]            @relation("campaigns_updated_byTousers")
+  events_events_created_byTousers                             events[]               @relation("events_created_byTousers")
+  events_events_deleted_byTousers                             events[]               @relation("events_deleted_byTousers")
+  events_events_updated_byTousers                             events[]               @relation("events_updated_byTousers")
+  modules_modules_created_byTousers                           modules[]              @relation("modules_created_byTousers")
+  modules_modules_deleted_byTousers                           modules[]              @relation("modules_deleted_byTousers")
+  modules_modules_updated_byTousers                           modules[]              @relation("modules_updated_byTousers")
+  notes_notes_created_byTousers                               notes[]                @relation("notes_created_byTousers")
+  notes_notes_updated_byTousers                               notes[]                @relation("notes_updated_byTousers")
+  permissions_permissions_created_byTousers                   permissions[]          @relation("permissions_created_byTousers")
+  permissions_permissions_deleted_byTousers                   permissions[]          @relation("permissions_deleted_byTousers")
+  permissions_permissions_updated_byTousers                   permissions[]          @relation("permissions_updated_byTousers")
+  sessions                                                    sessions[]
+  tabs_tabs_created_byTousers                                 tabs[]                 @relation("tabs_created_byTousers")
+  tabs_tabs_deleted_byTousers                                 tabs[]                 @relation("tabs_deleted_byTousers")
+  tabs_tabs_updated_byTousers                                 tabs[]                 @relation("tabs_updated_byTousers")
+  roles                                                       roles                  @relation(fields: [role_id], references: [id])
+}
+
+model verification_requests {
+  id         String   @id
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  created_at DateTime @default(now())
+  updated_at DateTime
+
+  @@unique([identifier, token])
+}
+
+enum CampaignPermissionStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum CampaignStatus {
+  ACTIVE
+  INACTIVE
+  COMPLETED
+}
+
+enum CampaignType {
+  VIDEO
+  IMAGES
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  DORMANT
+  SUSPENDED
+  PENDING
+}
+
+enum RegistrationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
