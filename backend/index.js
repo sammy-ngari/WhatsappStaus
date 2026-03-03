@@ -1,40 +1,92 @@
-// Load environment variables from the .env file into process.env
-require("dotenv").config();
+/**
+ * Backend entrypoint.
+ * Responsibilities:
+ * - load environment values
+ * - configure security and parsing middleware
+ * - register route modules
+ * - expose health endpoints
+ * - centralize error handling and process-level crash behavior
+ */
+const path = require("node:path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
-// Import required packages
-const express = require("express"); // Web server framework
-const cors = require("cors");       // Allows frontend (React) to connect
-const { Pool } = require("pg");     // PostgreSQL client
-const authRoutes = require('./routes/authRoutes'); // Import auth routes
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const express = require("express");
+const { errorHandler, notFound } = require("./middleware/errorHandler");
+const authRoutes = require("./routes/authRoutes");
+const protectedRoutes = require("./routes/protectedRoutes");
+const { ensureRequiredEnv } = require("./utils/env");
 
-// Create an Express app instance
+// Fail fast on missing critical secrets/config.
+ensureRequiredEnv();
+
 const app = express();
 
-// Enable CORS so your React frontend can call this API
-app.use(cors());
+// CORS allowlist can be supplied via CORS_ORIGIN=origin1,origin2,...
+// Defaults keep local frontend development working out of the box.
+const allowedOrigins = (
+  process.env.CORS_ORIGIN || "http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001"
+)
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
-// Allows your API to accept JSON request bodies
-app.use(express.json());
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
 
-app.use('/auth', authRoutes);
+      const corsError = new Error("Origin is not allowed by CORS policy");
+      corsError.statusCode = 403;
+      return callback(corsError);
+    },
+    credentials: true,
+  })
+);
 
-/*
-  Create a PostgreSQL connection pool.
-  - connectionString pulls DATABASE_URL from .env
-  - ssl is set to avoid certificate issues on hosted PostgreSQL
-*/
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+app.use(express.json({ limit: "1mb" }));
+app.use(cookieParser());
 
-// Simple route to test if backend is working
+// Lightweight root route used by frontend sanity checks.
 app.get("/", (req, res) => {
-  res.json({ message: "Backend is running on Windows!" });
+  res.json({ success: true, message: "Backend is running." });
 });
 
-// Choose a port for the server
-const PORT = 3000;
+// Health probe route for local/hosting liveness checks.
+app.get("/health", (req, res) => {
+  res.json({ success: true, message: "OK" });
+});
 
-// Start the server and listen for requests
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+// Auth module routes.
+app.use("/auth", authRoutes);
+app.use("/api", protectedRoutes);
+
+// Always keep error middleware as the last registered handlers.
+app.use(notFound);
+app.use(errorHandler);
+
+const PORT = Number(process.env.PORT) || 3000;
+
+if (require.main === module) {
+  const server = app.listen(PORT, () => {
+    console.log(`Server started on port ${PORT}`);
+  });
+
+  // Ensure rejected promises do not leave the process in an unknown state.
+  process.on("unhandledRejection", (reason) => {
+    console.error("Unhandled rejection:", reason);
+    server.close(() => process.exit(1));
+  });
+
+  // Crash safely on unexpected exceptions.
+  process.on("uncaughtException", (error) => {
+    console.error("Uncaught exception:", error);
+    server.close(() => process.exit(1));
+  });
+}
+
+// Exported for testing and controlled bootstrapping.
+module.exports = app;

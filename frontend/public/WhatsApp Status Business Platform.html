@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>WhatsApp Status Business Platform</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- React and ReactDOM via CDN -->
+  <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Swiper CSS for testimonials slider -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" />
+  <style>
+    /* Color palette tailored for a modern dark UX */
+    :root {
+      --primary: #00bfa6; /* teal accent */
+      --secondary: #0ea5e9; /* blue accent */
+      --bg-dark: #031e3e; /* darkest background */
+      --bg-section: #052c55; /* section background */
+      --bg-card: #0d386f; /* card background */
+      --text-primary: #f1f5f9; /* light text */
+      --text-secondary: #94a3b8; /* muted text */
+      --border-color: #1e4875;
+      --radius: 12px;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    /* Header styles */
+    header {
+      background: var(--bg-section);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 0;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: var(--primary);
+    }
+    .logo span {
+      display: inline-flex;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--primary);
+      align-items: center;
+      justify-content: center;
+      color: var(--bg-dark);
+      font-weight: 800;
+    }
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.95rem;
+    }
+    .nav-links a {
+      color: var(--text-secondary);
+      transition: color 0.3s;
+    }
+    .nav-links a:hover {
+      color: var(--primary);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.7rem 1.4rem;
+      border-radius: 999px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.3s, transform 0.3s;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: var(--bg-dark);
+    }
+    .btn-secondary {
+      background: var(--secondary);
+      color: var(--bg-dark);
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+    /* Hero section with radial gradient decoration */
+    .hero {
+      position: relative;
+      background: var(--bg-section);
+      padding: 5rem 0 4rem;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      top: -60%;
+      left: -30%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, rgba(0, 191, 166, 0.4), transparent 60%);
+      transform: rotate(35deg);
+      z-index: 0;
+    }
+    .hero-grid {
+      display: grid;
+      gap: 3rem;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.8rem;
+      max-width: 35rem;
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      margin-bottom: 1.3rem;
+    }
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+    .tag-pill {
+      padding: 0.35rem 0.8rem;
+      background: rgba(14, 165, 233, 0.2);
+      border-radius: 999px;
+      color: var(--secondary);
+    }
+    .hero-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.6rem;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    }
+    .hero-card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 0.6rem;
+    }
+    .hero-card p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    /* Features section */
+    .features-section {
+      background: var(--bg-dark);
+      padding: 4rem 0;
+    }
+    .features-grid {
+      display: grid;
+      gap: 1.8rem;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.8rem 1.4rem;
+      text-align: center;
+      transition: background 0.3s, transform 0.3s;
+      cursor: default;
+    }
+    .feature-card:hover {
+      background: #134a8c;
+      transform: translateY(-4px);
+    }
+    .feature-icon {
+      margin: 0 auto 1rem;
+      width: 40px;
+      height: 40px;
+      color: var(--primary);
+    }
+    .feature-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.4rem;
+    }
+    .feature-card p {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    /* Steps sections */
+    .steps-section {
+      background: var(--bg-section);
+      padding: 4rem 0;
+    }
+    .steps-grid {
+      display: grid;
+      gap: 1.5rem;
+    }
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.6rem;
+      position: relative;
+      transition: transform 0.3s;
+    }
+    .step-card:hover {
+      transform: translateY(-4px);
+    }
+    .step-badge {
+      position: absolute;
+      top: -0.7rem;
+      left: -0.7rem;
+      background: var(--primary);
+      color: var(--bg-dark);
+      padding: 0.3rem 0.6rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 999px;
+    }
+    .step-card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.4rem;
+      margin-top: 0.4rem;
+    }
+    .step-card p {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    /* Marketplace section */
+    .market-section {
+      background: var(--bg-dark);
+      padding: 4rem 0;
+    }
+    .campaign-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s;
+    }
+    .campaign-card:hover {
+      transform: translateY(-4px);
+    }
+    .campaign-media {
+      background: var(--bg-section);
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      color: var(--secondary);
+    }
+    .campaign-body {
+      padding: 1rem;
+      flex: 1;
+    }
+    .campaign-body h3 {
+      font-size: 1.0rem;
+      margin-bottom: 0.3rem;
+    }
+    .campaign-body p {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.6rem;
+    }
+    .campaign-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+    .campaign-footer {
+      padding: 0.8rem 1rem 1.1rem;
+    }
+    /* Testimonials */
+    .testimonial-swiper {
+      width: 100%;
+    }
+    .swiper-slide {
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+    .quote {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      width: 100%;
+    }
+    .quote strong {
+      display: block;
+      margin-top: 0.8rem;
+      color: var(--text-primary);
+    }
+    /* FAQ */
+    .faq-section {
+      background: var(--bg-section);
+      padding: 4rem 0;
+    }
+    .faq-item {
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 0;
+    }
+    .faq-item h3 {
+      font-size: 1rem;
+      margin-bottom: 0.3rem;
+    }
+    .faq-item p {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    /* CTA Final */
+    .cta-final {
+      background: var(--bg-dark);
+      padding: 4rem 0 5rem;
+      text-align: center;
+    }
+    .cta-final h2 {
+      font-size: 1.8rem;
+      margin-bottom: 0.6rem;
+    }
+    .cta-final p {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 40rem;
+      margin: 0.4rem auto 1.4rem;
+    }
+    /* Footer */
+    footer {
+      background: var(--bg-section);
+      border-top: 1px solid var(--border-color);
+      padding: 1.8rem 0;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    footer .footer-row {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+    footer a {
+      color: var(--text-secondary);
+      margin-right: 0.8rem;
+      transition: color 0.3s;
+    }
+    footer a:hover {
+      color: var(--primary);
+    }
+    /* Popup modal */
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .popup-overlay.hidden {
+      display: none;
+    }
+    .popup-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 2rem;
+      max-width: 420px;
+      width: 90%;
+      box-shadow: 0 12px 25px rgba(0,0,0,0.25);
+      text-align: center;
+      position: relative;
+    }
+    .popup-content h3 {
+      font-size: 1.4rem;
+      margin-bottom: 0.7rem;
+    }
+    .popup-content p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.6rem;
+    }
+    .popup-close {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+    /* Responsive adjustments */
+    @media (min-width: 768px) {
+      .hero-grid {
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+      .features-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .steps-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .campaign-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 767px) {
+      .nav-links {
+        display: none;
+      }
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+      .features-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+      .campaign-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="logo"><span>WA</span> WhatsApp Ads Hub</div>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#affiliates">Affiliates</a>
+        <a href="#advertisers">Advertisers</a>
+        <a href="#market">Campaigns</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <button class="btn btn-outline">Login</button>
+    </div>
+  </header>
+  <div id="root"></div>
+  <!-- Popup Modal -->
+  <div id="popup" class="popup-overlay hidden">
+    <div class="popup-content">
+      <button id="popup-close" class="popup-close">×</button>
+      <h3>Join Our WhatsApp Network</h3>
+      <p>Earn from your WhatsApp status or amplify your business with targeted campaigns. Get started now!</p>
+      <div style="display:flex; gap:0.8rem; justify-content:center; flex-wrap:wrap;">
+        <button class="btn btn-primary">Sign Up</button>
+        <button class="btn btn-secondary">Advertise</button>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <div class="container footer-row">
+      <span>© <span id="year"></span> WhatsApp Ads Hub. All rights reserved.</span>
+      <span>
+        <a href="#">About</a>
+        <a href="#">Terms</a>
+        <a href="#">Privacy</a>
+        <a href="#">Support</a>
+      </span>
+    </div>
+  </footer>
+  <!-- Swiper JS for slider -->
+  <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+  <script type="text/javascript">
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+  <script type="text/babel">
+    // Icons definitions as React elements
+    const FeatureIcons = {
+      dashboard: (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="feature-icon">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v18h18V3H3zm5 14H5v2h3v-2zm5 0h-3v2h3v-2zm5 0h-3v2h3v-2zM8 8H5v8h3V8zm5 3h-3v5h3v-5zm5-2h-3v7h3V9z" />
+        </svg>
+      ),
+      shield: (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="feature-icon">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 2l7 4v6c0 5.523-3.582 10.74-7 12-3.418-1.26-7-6.477-7-12V6l7-4z" />
+        </svg>
+      ),
+      wallet: (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="feature-icon">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2 7a2 2 0 012-2h13.5a3.5 3.5 0 110 7H4a2 2 0 01-2-2V7z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M20 14.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2 12h13.5a3.5 3.5 0 110 7H4a2 2 0 01-2-2v-5z" />
+        </svg>
+      ),
+      lock: (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="feature-icon">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16 10V7a4 4 0 10-8 0v3m-2 0a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2H6z" />
+        </svg>
+      ),
+      sliders: (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="feature-icon">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 21v-4a2 2 0 012-2h3a2 2 0 012 2v4m0-9V4a2 2 0 012-2h3a2 2 0 012 2v8m0 3v6m0-6a2 2 0 012-2h3a2 2 0 012 2v6" />
+        </svg>
+      ),
+      referral: (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="feature-icon">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M23 21v-2a4 4 0 00-3-3.87" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16 3.13a4 4 0 010 7.75" />
+        </svg>
+      ),
+      plus: (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="feature-icon">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+      ),
+      location: (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="feature-icon">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 11.5a3.5 3.5 0 110-7 3.5 3.5 0 010 7z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16" />
+        </svg>
+      ),
+    };
+    // Feature list for both affiliates and advertisers
+    const features = [
+      { icon: 'dashboard', title: 'Real-Time Dashboard', description: 'Track your views, earnings and campaign performance instantly.' },
+      { icon: 'shield', title: 'Verified Affiliates', description: 'All promoters are vetted to ensure authentic view counts and interactions.' },
+      { icon: 'wallet', title: 'Fast Payouts', description: 'Withdraw your earnings quickly via mobile money or bank at any time.' },
+      { icon: 'lock', title: 'Secure & Transparent', description: 'Your data and money are safe with us. We provide transparent analytics for every campaign.' },
+      { icon: 'sliders', title: 'Flexible Budgets', description: 'Set your campaign spend and goals to fit your business needs and scale easily.' },
+      { icon: 'referral', title: 'Referral Program', description: 'Earn extra commissions when you invite friends to join as affiliates.' },
+      { icon: 'plus', title: 'Easy Campaign Creation', description: 'Create and launch a campaign in minutes with simple uploads and targeting.' },
+      { icon: 'location', title: 'Local Targeting', description: 'Choose specific regions and demographics to get the best results for your business.' },
+    ];
+    // Steps data for affiliates
+    const affiliateSteps = [
+      { step: '1', title: 'Create Account', description: 'Sign up for free and get your personal affiliate link and dashboard.' },
+      { step: '2', title: 'Select Campaigns', description: 'Browse adverts and share posters or videos on your WhatsApp status.' },
+      { step: '3', title: 'Earn & Withdraw', description: 'Get paid for views and referrals. Withdraw earnings anytime.' },
+    ];
+    // Steps data for advertisers
+    const advertiserSteps = [
+      { step: '1', title: 'Register as Advertiser', description: 'Create a profile for your business or product.' },
+      { step: '2', title: 'Upload Your Campaign', description: 'Add posters or videos, set your budget and targeting.' },
+      { step: '3', title: 'Monitor Results', description: 'Watch your reach, views and conversions in real-time.' },
+    ];
+    // Testimonials data
+    const testimonials = [
+      { text: '“This platform turned my WhatsApp into a source of income! I love seeing my balance grow every day.”', author: '– Mary, Student & Affiliate' },
+      { text: '“Thanks to the targeted campaigns, my restaurant saw a huge increase in customers. The dashboard is super easy to use.”', author: '– Blessings, Restaurant Owner' },
+      { text: '“I’m amazed at how simple it was to launch ads and track results. We doubled our sales in one month!”', author: '– Pastor, Electronics Shop' },
+    ];
+    // Campaigns dummy data
+    const campaigns = [
+      { title: 'Summer Fashion Sale', category: 'Fashion', earnPerThousand: '1,500', budgetLeft: '70%', daysLeft: '5 days', description: 'Promote our latest outfits and earn per thousand views.' },
+      { title: 'Delicious Pizza Promo', category: 'Food & Drinks', earnPerThousand: '1,000', budgetLeft: '40%', daysLeft: '3 days', description: 'Share our mouth-watering pizza deals with your friends.' },
+      { title: 'Tech Gadget Launch', category: 'Electronics', earnPerThousand: '2,000', budgetLeft: '85%', daysLeft: '8 days', description: 'Highlight the hottest tech gadget release and earn big.' },
+    ];
+    // Feature card component
+    function FeatureCard({ icon, title, description }) {
+      const Icon = FeatureIcons[icon];
+      return (
+        <div className="feature-card">
+          {Icon}
+          <h3>{title}</h3>
+          <p>{description}</p>
+        </div>
+      );
+    }
+    // Step card component
+    function StepCard({ step, title, description }) {
+      return (
+        <div className="step-card">
+          <div className="step-badge">Step {step}</div>
+          <h3>{title}</h3>
+          <p>{description}</p>
+        </div>
+      );
+    }
+    // Campaign card component (reuse from previous)
+    function CampaignCard({ title, category, earnPerThousand, budgetLeft, daysLeft, description }) {
+      return (
+        <div className="campaign-card">
+          <div className="campaign-media">Poster / Video Preview</div>
+          <div className="campaign-body">
+            <h3>{title}</h3>
+            <p>{description}</p>
+            <div className="campaign-meta">
+              <span>{category}</span>
+              <span>{`Earn ${earnPerThousand} / 1k views`}</span>
+            </div>
+          </div>
+          <div className="campaign-footer">
+            <div className="campaign-meta" style={{ marginBottom: '0.6rem' }}>
+              <span>{`Budget left: ${budgetLeft}`}</span>
+              <span>{`Ends in ${daysLeft}`}</span>
+            </div>
+            <button className="btn btn-primary full">Promote This Ad</button>
+          </div>
+        </div>
+      );
+    }
+    // Stat tile component reused
+    function StatTile({ label, value }) {
+      return (
+        <div className="stat-tile">
+          <div className="stat-label">{label}</div>
+          <div className="stat-number">{value}</div>
+        </div>
+      );
+    }
+    function App() {
+      return (
+        <div>
+          {/* HERO */}
+          <section className="hero">
+            <div className="container hero-grid">
+              <div>
+                <h1 className="hero-title">Monetize Your WhatsApp Status &amp; Grow Your Business</h1>
+                <p className="hero-subtitle">Connect advertisers with thousands of WhatsApp users. Earn cash sharing ads or boost your business through genuine status views.</p>
+                <div className="hero-actions">
+                  <button className="btn btn-primary">Start Earning</button>
+                  <button className="btn btn-secondary">Advertise Now</button>
+                </div>
+                <div className="hero-tags">
+                  <span className="tag-pill">Real-time analytics</span>
+                  <span className="tag-pill">Verified users</span>
+                  <span className="tag-pill">Fast payouts</span>
+                </div>
+              </div>
+              <div>
+                <div className="hero-card">
+                  <h3>Your Earnings Snapshot</h3>
+                  <p>See your stats update live. All your metrics in one simple dashboard.</p>
+                  <div className="hero-metrics">
+                    <StatTile label="Total Subscribers" value="193" />
+                    <StatTile label="Total Views" value="2,258" />
+                    <StatTile label="Views Earnings" value="235,300.00" />
+                    <StatTile label="Income Balance" value="15,240.00" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          {/* FEATURES */}
+          <section id="features" className="features-section">
+            <div className="container">
+              <div className="section-header" style={{ marginBottom: '3rem', textAlign: 'center' }}>
+                <h2 className="section-title" style={{ fontSize: '1.8rem' }}>Everything You Need to Earn &amp; Grow</h2>
+                <p className="section-subtitle" style={{ marginTop: '0.6rem' }}>Our platform is built with all the tools to empower affiliates and advertisers to succeed on WhatsApp.</p>
+              </div>
+              <div className="features-grid">
+                {features.map((feat, idx) => (
+                  <FeatureCard key={idx} icon={feat.icon} title={feat.title} description={feat.description} />
+                ))}
+              </div>
+            </div>
+          </section>
+          {/* HOW IT WORKS - AFFILIATES */}
+          <section id="affiliates" className="steps-section">
+            <div className="container">
+              <div className="section-header" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <h2 className="section-title" style={{ fontSize: '1.7rem' }}>How It Works for Affiliates</h2>
+                <p className="section-subtitle" style={{ marginTop: '0.4rem' }}>Turn your WhatsApp status into a steady income stream by following these simple steps.</p>
+              </div>
+              <div className="steps-grid">
+                {affiliateSteps.map((item, idx) => (
+                  <StepCard key={idx} step={item.step} title={item.title} description={item.description} />
+                ))}
+              </div>
+            </div>
+          </section>
+          {/* HOW IT WORKS - ADVERTISERS */}
+          <section id="advertisers" className="steps-section">
+            <div className="container">
+              <div className="section-header" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <h2 className="section-title" style={{ fontSize: '1.7rem' }}>How It Works for Advertisers</h2>
+                <p className="section-subtitle" style={{ marginTop: '0.4rem' }}>Launch your campaigns effortlessly and reach real people on WhatsApp.</p>
+              </div>
+              <div className="steps-grid">
+                {advertiserSteps.map((item, idx) => (
+                  <StepCard key={idx} step={item.step} title={item.title} description={item.description} />
+                ))}
+              </div>
+            </div>
+          </section>
+          {/* MARKETPLACE */}
+          <section id="market" className="market-section">
+            <div className="container">
+              <div className="section-header" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <h2 className="section-title" style={{ fontSize: '1.7rem' }}>Browse Campaigns</h2>
+                <p className="section-subtitle" style={{ marginTop: '0.4rem' }}>Choose the adverts you love and start promoting them to your contacts.</p>
+              </div>
+              <div className="features-grid campaign-grid" style={{ rowGap: '1.5rem', columnGap: '1.5rem' }}>
+                {campaigns.map((camp, idx) => (
+                  <CampaignCard
+                    key={idx}
+                    title={camp.title}
+                    category={camp.category}
+                    earnPerThousand={camp.earnPerThousand}
+                    budgetLeft={camp.budgetLeft}
+                    daysLeft={camp.daysLeft}
+                    description={camp.description}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+          {/* TESTIMONIALS & CALCULATOR */}
+          <section className="features-section" style={{ background: 'var(--bg-section)' }}>
+            <div className="container">
+              <div className="section-header" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <h2 className="section-title" style={{ fontSize: '1.7rem' }}>Real Stories &amp; Earnings</h2>
+                <p className="section-subtitle" style={{ marginTop: '0.4rem' }}>Hear from successful affiliates and advertisers, and estimate your own earnings.</p>
+              </div>
+              <div className="two-col" style={{ gap: '2rem' }}>
+                {/* Testimonials slider */}
+                <div className="testimonial-swiper swiper">
+                  <div className="swiper-wrapper">
+                    {testimonials.map((item, index) => (
+                      <div className="swiper-slide" key={index}>
+                        <div className="quote">
+                          {item.text}
+                          <strong>{item.author}</strong>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="swiper-pagination"></div>
+                </div>
+                {/* Earnings calculator concept */}
+                <div className="quote" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
+                  <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.6rem' }}>Estimate Your Earnings</h3>
+                  <p style={{ marginBottom: '0.8rem' }}>If you have 300 viewers per day and you post one campaign daily at 1,500 per thousand views, you could earn:</p>
+                  <ul style={{ listStyle: 'disc', marginLeft: '1.4rem', color: 'var(--text-secondary)', marginBottom: '0.8rem' }}>
+                    <li>300 views × 30 days = 9,000 views</li>
+                    <li>9,000 ÷ 1,000 × 1,500 = 13,500 per month</li>
+                    <li>Plus extra referral bonuses</li>
+                  </ul>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Actual earnings vary with your audience size and frequency of posts.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+          {/* FAQ */}
+          <section id="faq" className="faq-section">
+            <div className="container">
+              <div className="section-header" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <h2 className="section-title" style={{ fontSize: '1.7rem' }}>Frequently Asked Questions</h2>
+              </div>
+              <div className="faq">
+                <div className="faq-item">
+                  <h3>How do I earn as an affiliate?</h3>
+                  <p>You earn bonuses for every valid view of the campaigns you post and additional commission when people join through your unique referral link.</p>
+                </div>
+                <div className="faq-item">
+                  <h3>How are views counted?</h3>
+                  <p>We use advanced tracking and anti-fraud mechanisms to ensure only genuine views are recorded and paid.</p>
+                </div>
+                <div className="faq-item">
+                  <h3>Is there any fee to join?</h3>
+                  <p>No. Joining as an affiliate is free, and advertisers can start with flexible budgets that suit their business.</p>
+                </div>
+                <div className="faq-item">
+                  <h3>When do I get paid?</h3>
+                  <p>Withdrawals are available once your balance reaches the minimum threshold and are processed quickly via mobile money or bank transfer.</p>
+                </div>
+                <div className="faq-item">
+                  <h3>What type of products can I advertise?</h3>
+                  <p>You can promote most legal products and services. We do not allow adult, hateful, or misleading content. All campaigns are reviewed before going live.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+          {/* CTA FINAL */}
+          <section className="cta-final">
+            <div className="container">
+              <h2>Ready to Start?</h2>
+              <p>Become an affiliate or launch your first campaign and join our thriving WhatsApp business community.</p>
+              <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
+                <button className="btn btn-primary">Join as Affiliate</button>
+                <button className="btn btn-secondary">Create Campaign</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      );
+    }
+    // Render app
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+  <script type="text/javascript">
+    // Popup and slider initialization
+    document.addEventListener('DOMContentLoaded', function() {
+      // show popup after 6 seconds
+      setTimeout(() => {
+        const popup = document.getElementById('popup');
+        if (popup) popup.classList.remove('hidden');
+      }, 6000);
+      // close popup on click of close button
+      const closeBtn = document.getElementById('popup-close');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+          document.getElementById('popup').classList.add('hidden');
+        });
+      }
+      // Initialize Swiper testimonials
+      if (typeof Swiper !== 'undefined') {
+        new Swiper('.testimonial-swiper', {
+          loop: true,
+          autoplay: {
+            delay: 4500,
+            disableOnInteraction: false,
+          },
+          pagination: {
+            el: '.testimonial-swiper .swiper-pagination',
+            clickable: true,
+          },
+        });
+      }
+    });
+  </script>
+</body>
+</html>
