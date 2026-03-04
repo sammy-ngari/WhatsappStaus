@@ -110,6 +110,8 @@ model campaign_events {
 model organizations {
   id                                  String              @id @default(uuid()) @db.Uuid
   name                                String              @db.VarChar(150)
+  // Logo URL for object storage providers (S3/R2/MinIO).
+  logo_url                            String?             @db.VarChar(255)
   registration_no                     String?             @db.VarChar(100)
   tax_id                              String?             @db.VarChar(100)
   billing_email                       String?             @db.VarChar(100)
@@ -137,6 +139,8 @@ model brands {
   id                     String         @id @default(uuid()) @db.Uuid
   organization_id        String         @db.Uuid
   name                   String         @db.VarChar(150)
+  // Brand logo URL for object storage providers (S3/R2/MinIO).
+  logo_url               String?        @db.VarChar(255)
   description            String?        @db.VarChar(255)
   created_at             DateTime       @default(now())
   created_by             String         @db.VarChar(50)
@@ -388,15 +392,12 @@ model users {
   email                                                       String                 @unique @db.VarChar(50)
   email_verified                                              DateTime?
   password                                                    String                 @db.VarChar(100)
-  image                                                       String?                @db.VarChar(50)
   firstname                                                   String                 @db.VarChar(50)
   othernames                                                  String                 @db.VarChar(100)
-  date_of_birth                                               String                 @db.VarChar(20)
-  gender                                                      String                 @db.VarChar(10)
-  national_id                                                 String                 @unique @db.VarChar(20)
-  phone                                                       String                 @db.VarChar(20)
-  next_of_kin                                                 String                 @db.VarChar(100)
-  next_of_kin_contacts                                        String                 @db.VarChar(100)
+  // Preferred display alias for UI surfaces. If null, clients should fall back to firstname.
+  display_name                                                String?                @db.VarChar(100)
+  // Avatar/profile image URL for object storage providers (S3/R2/MinIO).
+  profile_picture_url                                         String?                @db.VarChar(255)
   address                                                     String?                @db.VarChar(255)
   created_at                                                  DateTime               @default(now())
   updated_at                                                  DateTime?
@@ -407,6 +408,8 @@ model users {
   organizations_created                                       organizations[]        @relation("organizations_created_by")
   // Memberships where this user is the organization member.
   organization_members                                        organization_members[] @relation("organization_members_user_id")
+  // Role-specific affiliate profile (KYC + payout), separated from auth identity.
+  affiliate_profile                                           affiliate_profiles?
   // Audit reverse-relations for organization lifecycle tracking.
   organizations_updated                                       organizations[]        @relation("organizations_updated_by")
   organizations_deleted                                       organizations[]        @relation("organizations_deleted_by")
@@ -446,6 +449,23 @@ model users {
   tabs_tabs_updated_byTousers                                 tabs[]                 @relation("tabs_updated_byTousers")
   withdrawals                                                 withdrawals[]
   roles                                                       roles                  @relation(fields: [role_id], references: [id])
+}
+
+// Affiliate-only profile data decoupled from core auth identity.
+model affiliate_profiles {
+  id                   String   @id @default(uuid()) @db.Uuid
+  user_id              String   @unique @db.VarChar(50)
+  national_id          String?  @db.VarChar(20)
+  date_of_birth        String?  @db.VarChar(20)
+  gender               String?  @db.VarChar(10)
+  phone                String?  @db.VarChar(20)
+  next_of_kin          String?  @db.VarChar(100)
+  next_of_kin_contacts String?  @db.VarChar(100)
+  payout_account       String?
+  verified             Boolean  @default(false)
+  created_at           DateTime @default(now())
+  updated_at           DateTime?
+  users                users    @relation(fields: [user_id], references: [id])
 }
 
 model verification_requests {
