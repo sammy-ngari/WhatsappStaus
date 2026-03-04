@@ -45,13 +45,23 @@ model campaigns {
   id                                String                 @id @db.VarChar(50)
   title                             Json[]
   brand_name                        String                 @db.VarChar(100)
+  brand_id                          String?                @db.Uuid
   commission_rate                   Float
   duration                          Int
   caption                           Json[]
   promo_code                        String                 @db.VarChar(50)
   material_urls                     Json[]
   type                              CampaignType
-  status                            CampaignStatus         @default(ACTIVE)
+  status                            CampaignStatus         @default(DRAFT)
+  organization_id                   String?                @db.Uuid
+  review_status                     CampaignReviewStatus   @default(NOT_SUBMITTED)
+  revision_number                   Int                    @default(1)
+  last_submitted_at                 DateTime?
+  reviewed_at                       DateTime?
+  reviewed_by                       String?
+  rejection_reason                  String?
+  budget_total                      Decimal?
+  budget_remaining                  Decimal?
   unique_link                       String                 @unique @db.VarChar(255)
   views                             Int                    @default(0)
   clicks                            Int                    @default(0)
@@ -64,10 +74,166 @@ model campaigns {
   updated_by                        String?                @db.VarChar(50)
   deleted_at                        DateTime?
   deleted_by                        String?                @db.VarChar(50)
+  brand                             brands?                @relation(fields: [brand_id], references: [id])
+  // Campaigns can optionally belong to an organization.
+  // This preserves backward compatibility with campaigns created before organizations existed.
+  organization                      organizations?         @relation(fields: [organization_id], references: [id])
   campaign_permissions              campaign_permissions[]
+  campaign_events                   campaign_events[]
+  campaign_participants             campaign_participants[]
+  earnings_ledger                   earnings_ledger[]
   users_campaigns_created_byTousers users                  @relation("campaigns_created_byTousers", fields: [created_by], references: [id])
   users_campaigns_deleted_byTousers users?                 @relation("campaigns_deleted_byTousers", fields: [deleted_by], references: [id])
   users_campaigns_updated_byTousers users?                 @relation("campaigns_updated_byTousers", fields: [updated_by], references: [id])
+
+  @@index([review_status])
+  @@index([organization_id], map: "campaigns_organization_id")
+  @@index([brand_id], map: "campaigns_brand_id")
+}
+
+model campaign_events {
+  id          String            @id @default(uuid()) @db.Uuid
+  campaign_id String            @db.VarChar(50)
+  affiliate_id String           @db.VarChar(50)
+  event_type  CampaignEventType
+  metadata    Json?
+  created_at  DateTime          @default(now())
+  campaigns   campaigns         @relation(fields: [campaign_id], references: [id])
+  users       users             @relation(fields: [affiliate_id], references: [id])
+
+  @@index([campaign_id])
+  @@index([affiliate_id])
+  @@index([event_type])
+}
+
+// Represents a company, brand, or client account with lifecycle status and audit ownership fields.
+model organizations {
+  id                                  String              @id @default(uuid()) @db.Uuid
+  name                                String              @db.VarChar(150)
+  registration_no                     String?             @db.VarChar(100)
+  tax_id                              String?             @db.VarChar(100)
+  billing_email                       String?             @db.VarChar(100)
+  billing_address                     String?             @db.VarChar(255)
+  status                              OrganizationStatus  @default(PENDING)
+  created_at                          DateTime            @default(now())
+  created_by                          String              @db.VarChar(50)
+  updated_at                          DateTime?
+  updated_by                          String?             @db.VarChar(50)
+  deleted_at                          DateTime?
+  deleted_by                          String?             @db.VarChar(50)
+  // One organization can own many campaigns; campaigns may remain null for legacy compatibility.
+  campaigns                           campaigns[]
+  brands                              brands[]
+  // One organization can have many user memberships with role and status controls.
+  members                             organization_members[]
+  users_organizations_created_by      users               @relation("organizations_created_by", fields: [created_by], references: [id])
+  users_organizations_updated_by      users?              @relation("organizations_updated_by", fields: [updated_by], references: [id])
+  users_organizations_deleted_by      users?              @relation("organizations_deleted_by", fields: [deleted_by], references: [id])
+
+  @@index([status])
+}
+
+model brands {
+  id                     String         @id @default(uuid()) @db.Uuid
+  organization_id        String         @db.Uuid
+  name                   String         @db.VarChar(150)
+  description            String?        @db.VarChar(255)
+  created_at             DateTime       @default(now())
+  created_by             String         @db.VarChar(50)
+  updated_at             DateTime?
+  updated_by             String?        @db.VarChar(50)
+  deleted_at             DateTime?
+  deleted_by             String?        @db.VarChar(50)
+  organizations          organizations  @relation(fields: [organization_id], references: [id])
+  campaigns              campaigns[]
+  users_brands_created_by users         @relation("brands_created_by", fields: [created_by], references: [id])
+  users_brands_updated_by users?        @relation("brands_updated_by", fields: [updated_by], references: [id])
+  users_brands_deleted_by users?        @relation("brands_deleted_by", fields: [deleted_by], references: [id])
+
+  @@index([organization_id])
+}
+
+// Join table for many-to-many user <-> organization membership with role/status lifecycle and auditing.
+model organization_members {
+  id                                       String                   @id @default(uuid()) @db.Uuid
+  organization_id                          String                   @db.Uuid
+  user_id                                  String                   @db.VarChar(50)
+  role                                     OrganizationMemberRole
+  status                                   OrganizationMemberStatus @default(ACTIVE)
+  joined_at                                DateTime                 @default(now())
+  created_at                               DateTime                 @default(now())
+  created_by                               String                   @db.VarChar(50)
+  updated_at                               DateTime?
+  updated_by                               String?                  @db.VarChar(50)
+  deleted_at                               DateTime?
+  deleted_by                               String?                  @db.VarChar(50)
+  organizations                            organizations            @relation(fields: [organization_id], references: [id])
+  users_organization_members_user_id       users                    @relation("organization_members_user_id", fields: [user_id], references: [id])
+  users_organization_members_created_by    users                    @relation("organization_members_created_by", fields: [created_by], references: [id])
+  users_organization_members_updated_by    users?                   @relation("organization_members_updated_by", fields: [updated_by], references: [id])
+  users_organization_members_deleted_by    users?                   @relation("organization_members_deleted_by", fields: [deleted_by], references: [id])
+
+  @@unique([organization_id, user_id])
+  @@index([organization_id])
+  @@index([user_id])
+  @@index([status])
+}
+
+model campaign_participants {
+  id          String    @id @default(uuid()) @db.Uuid
+  campaign_id String    @db.VarChar(50)
+  user_id     String    @db.VarChar(50)
+  joined_at   DateTime  @default(now())
+  status      String    @default("ACTIVE")
+  campaigns   campaigns @relation(fields: [campaign_id], references: [id])
+  users       users     @relation(fields: [user_id], references: [id])
+
+  @@unique([campaign_id, user_id])
+  @@index([campaign_id])
+  @@index([user_id])
+}
+
+model earnings_ledger {
+  id           String    @id @default(uuid()) @db.Uuid
+  user_id      String    @db.VarChar(50)
+  campaign_id  String?   @db.VarChar(50)
+  amount       Decimal
+  type         String
+  reference_id String?
+  created_at   DateTime  @default(now())
+  campaigns    campaigns? @relation(fields: [campaign_id], references: [id])
+  users        users      @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+  @@index([campaign_id])
+  @@index([type])
+}
+
+model referrals {
+  id                                         String @id @default(uuid()) @db.Uuid
+  referrer_id                                String @db.VarChar(50)
+  referred_user_id                           String @db.VarChar(50)
+  created_at                                 DateTime @default(now())
+  users_referrals_referred_user_idTousers    users @relation("referrals_referred_user_idTousers", fields: [referred_user_id], references: [id])
+  users_referrals_referrer_idTousers         users @relation("referrals_referrer_idTousers", fields: [referrer_id], references: [id])
+
+  @@unique([referred_user_id])
+  @@index([referrer_id])
+}
+
+model withdrawals {
+  id          String           @id @default(uuid()) @db.Uuid
+  user_id     String           @db.VarChar(50)
+  amount      Decimal
+  status      WithdrawalStatus @default(PENDING)
+  requested_at DateTime        @default(now())
+  reviewed_at DateTime?
+  reviewed_by String?
+  notes       String?
+  users       users            @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+  @@index([status])
 }
 
 model events {
@@ -237,6 +403,20 @@ model users {
   deleted_at                                                  DateTime?
   deleted_by                                                  String?                @db.VarChar(50)
   accounts                                                    accounts[]
+  // Organizations this user created.
+  organizations_created                                       organizations[]        @relation("organizations_created_by")
+  // Memberships where this user is the organization member.
+  organization_members                                        organization_members[] @relation("organization_members_user_id")
+  // Audit reverse-relations for organization lifecycle tracking.
+  organizations_updated                                       organizations[]        @relation("organizations_updated_by")
+  organizations_deleted                                       organizations[]        @relation("organizations_deleted_by")
+  brands_created                                              brands[]               @relation("brands_created_by")
+  brands_updated                                              brands[]               @relation("brands_updated_by")
+  brands_deleted                                              brands[]               @relation("brands_deleted_by")
+  // Audit reverse-relations for organization membership lifecycle tracking.
+  organization_members_created                                organization_members[] @relation("organization_members_created_by")
+  organization_members_updated                                organization_members[] @relation("organization_members_updated_by")
+  organization_members_deleted                                organization_members[] @relation("organization_members_deleted_by")
   campaign_permissions_campaign_permissions_created_byTousers campaign_permissions[] @relation("campaign_permissions_created_byTousers")
   campaign_permissions_campaign_permissions_deleted_byTousers campaign_permissions[] @relation("campaign_permissions_deleted_byTousers")
   campaign_permissions_campaign_permissions_updated_byTousers campaign_permissions[] @relation("campaign_permissions_updated_byTousers")
@@ -255,10 +435,16 @@ model users {
   permissions_permissions_created_byTousers                   permissions[]          @relation("permissions_created_byTousers")
   permissions_permissions_deleted_byTousers                   permissions[]          @relation("permissions_deleted_byTousers")
   permissions_permissions_updated_byTousers                   permissions[]          @relation("permissions_updated_byTousers")
+  campaign_events                                           campaign_events[]
+  campaign_participants                                      campaign_participants[]
+  earnings_ledger                                            earnings_ledger[]
+  referrals_referrals_referred_user_idTousers                referrals[]            @relation("referrals_referred_user_idTousers")
+  referrals_referrals_referrer_idTousers                     referrals[]            @relation("referrals_referrer_idTousers")
   sessions                                                    sessions[]
   tabs_tabs_created_byTousers                                 tabs[]                 @relation("tabs_created_byTousers")
   tabs_tabs_deleted_byTousers                                 tabs[]                 @relation("tabs_deleted_byTousers")
   tabs_tabs_updated_byTousers                                 tabs[]                 @relation("tabs_updated_byTousers")
+  withdrawals                                                 withdrawals[]
   roles                                                       roles                  @relation(fields: [role_id], references: [id])
 }
 
@@ -279,9 +465,25 @@ enum CampaignPermissionStatus {
 }
 
 enum CampaignStatus {
+  DRAFT
+  SCHEDULED
   ACTIVE
-  INACTIVE
+  PAUSED
   COMPLETED
+  ARCHIVED
+}
+
+enum CampaignReviewStatus {
+  NOT_SUBMITTED
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CampaignEventType {
+  VIEW
+  CLICK
+  CONVERSION
 }
 
 enum CampaignType {
@@ -296,8 +498,29 @@ enum OrganizationStatus {
   PENDING
 }
 
+enum OrganizationMemberRole {
+  OWNER
+  ADMIN
+  MARKETER
+  VIEWER
+}
+
+enum OrganizationMemberStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+  REMOVED
+}
+
 enum RegistrationStatus {
   PENDING
   CONFIRMED
   CANCELLED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
 }
