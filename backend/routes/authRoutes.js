@@ -9,16 +9,18 @@ const {
   getCurrentUserPermissions,
   login,
   logout,
+  register,
   refreshSession,
   signup,
 } = require("../controllers/authController");
 const { authenticateAccessToken } = require("../middleware/authenticateAccessToken");
 const asyncHandler = require("../middleware/asyncHandler");
 const validate = require("../middleware/validate");
-const { loginSchema, logoutSchema, refreshSchema, signupSchema } = require("../validation/authSchemas");
+const { loginSchema, logoutSchema, refreshSchema, registerSchema, signupSchema } = require("../validation/authSchemas");
 
 const router = express.Router();
 
+router.post("/register", validate(registerSchema), asyncHandler(register));
 router.post("/signup", validate(signupSchema), asyncHandler(signup));
 router.post("/login", validate(loginSchema), asyncHandler(login));
 router.post("/refresh", validate(refreshSchema), asyncHandler(refreshSession));

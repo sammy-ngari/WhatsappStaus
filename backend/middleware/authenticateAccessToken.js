@@ -90,6 +90,7 @@ const authenticateAccessToken = async (req, _res, next) => {
         role_id: true,
         firstname: true,
         othernames: true,
+        email_verified: true,
       },
     });
 

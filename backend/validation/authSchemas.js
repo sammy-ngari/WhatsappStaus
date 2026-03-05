@@ -1,6 +1,16 @@
 const { z } = require("zod");
 
 /**
+ * Authentication validation contracts.
+ * Responsibilities:
+ * - enforce request-shape contracts for auth endpoints
+ * - normalize and constrain user-submitted auth payloads
+ * Security considerations:
+ * - strict validation reduces injection and malformed-input attack surface
+ * - length limits help constrain abusive payload sizes
+ */
+
+/**
  * Shared identity fields required by the existing `users` table.
  */
 const userIdentitySchema = z.object({
@@ -24,6 +34,22 @@ const signupSchema = z.object({
       address: z.string().trim().min(1).max(255).optional(),
     })
     .merge(userIdentitySchema),
+  params: z.object({}).optional(),
+  query: z.object({}).optional(),
+});
+
+/**
+ * Lightweight production registration contract.
+ * Only identity fields required for initial account/session creation are accepted.
+ */
+const registerSchema = z.object({
+  body: z.object({
+    flow: z.enum(["affiliate", "advertiser"]),
+    email: z.string().trim().email().max(50),
+    password: z.string().min(8).max(100),
+    firstname: z.string().trim().min(1).max(50),
+    othernames: z.string().trim().max(100).optional(),
+  }),
   params: z.object({}).optional(),
   query: z.object({}).optional(),
 });
@@ -68,5 +94,6 @@ module.exports = {
   loginSchema,
   logoutSchema,
   refreshSchema,
+  registerSchema,
   signupSchema,
 };
